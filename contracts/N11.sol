@@ -21,44 +21,44 @@ contract N11 is Context, IERC20, IERC20Metadata {
     constructor() {
         _name = 'N11';
         _symbol = 'N11';
-        _mint(msg.sender, 100000);
+        _mint(msg.sender, 100 ether);
     }
 
-    function name() public view virtual override returns (string memory) {
+    function name() public view returns (string memory) {
         return _name;
     }
 
-    function symbol() public view virtual override returns (string memory) {
+    function symbol() public view returns (string memory) {
         return _symbol;
     }
 
-    function decimals() public view virtual override returns (uint8) {
+    function decimals() public view returns (uint8) {
         return 18;
     }
 
-    function totalSupply() public view virtual override returns (uint256) {
+    function totalSupply() public view returns (uint256) {
         return _totalSupply;
     }
 
-    function balanceOf(address account) public view virtual override returns (uint256) {
+    function balanceOf(address account) public view returns (uint256) {
         return _balances[account] + _earned(account);
     }
 
-    function lastTime(address account) external view returns (uint) {
+    function lastTime(address account) public view returns (uint) {
         return _lastTime[account];
     }
 
-    function transfer(address to, uint256 amount) public virtual override returns (bool) {
+    function transfer(address to, uint256 amount) public virtual returns (bool) {
         address owner = _msgSender();
         _transfer(owner, to, amount);
         return true;
     }
 
-    function allowance(address owner, address spender) public view virtual override returns (uint256) {
+    function allowance(address owner, address spender) public view returns (uint256) {
         return _allowances[owner][spender];
     }
 
-    function approve(address spender, uint256 amount) public virtual override returns (bool) {
+    function approve(address spender, uint256 amount) public returns (bool) {
         address owner = _msgSender();
         _approve(owner, spender, amount);
         return true;
@@ -68,20 +68,20 @@ contract N11 is Context, IERC20, IERC20Metadata {
         address from,
         address to,
         uint256 amount
-    ) public virtual override returns (bool) {
+    ) public returns (bool) {
         address spender = _msgSender();
         _spendAllowance(from, spender, amount);
         _transfer(from, to, amount);
         return true;
     }
 
-    function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
+    function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
         address owner = _msgSender();
         _approve(owner, spender, allowance(owner, spender) + addedValue);
         return true;
     }
 
-    function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
+    function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
         address owner = _msgSender();
         uint256 currentAllowance = allowance(owner, spender);
         require(currentAllowance >= subtractedValue, "N11: decreased allowance below zero");
@@ -103,9 +103,9 @@ contract N11 is Context, IERC20, IERC20Metadata {
         uint256 toBalance = _balances[to] + _earned(to);
 
         require(fromBalance >= amount, "N11: transfer amount exceeds balance");
-    unchecked {
-        _balances[from] = fromBalance - amount;
-    }
+        unchecked {
+            _balances[from] = fromBalance - amount;
+        }
         _balances[to] = toBalance + amount;
 
         _lastTime[from] = block.timestamp;
@@ -114,28 +114,9 @@ contract N11 is Context, IERC20, IERC20Metadata {
         emit Transfer(from, to, amount);
     }
 
-    function _calculatePercent(uint balance) internal view returns (uint256){
-        uint256 result = 0;
-        if (balance > 100) {
-            uint256 remainder = balance % 100;
-            uint256 onePercent = (balance - remainder) / 100;
-            result = onePercent * percentPerDay;
-        }
-        return result;
-    }
-
-    function _earned(address account) internal view returns (uint256){
-        uint256 balance = _balances[account];
-        uint256 secondInDay = 3600 * 24;
-        if (_lastTime[account] > 0) {
-            uint256 differenceInSeconds = (block.timestamp - _lastTime[account]);
-            uint256 remainder = differenceInSeconds % secondInDay;
-            uint256 differenceInDays = uint256((differenceInSeconds - remainder) / secondInDay);
-            for (uint256 i = 0; i < differenceInDays; i++) {
-                balance = balance + _calculatePercent(balance);
-            }
-        }
-        return balance - _balances[account];
+    function _earned(address account) internal view returns (uint256) {
+        uint256 differenceInMinutes = _lastTime[account] > 0 ? (block.timestamp - _lastTime[account]) / 60000 : 0;
+        return (((_balances[account] * 11) / 10) - _balances[account]) * differenceInMinutes;
     }
 
     function _mint(address account, uint256 amount) internal virtual {
@@ -143,19 +124,6 @@ contract N11 is Context, IERC20, IERC20Metadata {
         _totalSupply += amount;
         _balances[account] += amount;
         emit Transfer(address(0), account, amount);
-    }
-
-    function _burn(address account, uint256 amount) internal virtual {
-        require(account != address(0), "N11: burn from the zero address");
-
-        uint256 accountBalance = _balances[account];
-        require(accountBalance >= amount, "N11: burn amount exceeds balance");
-    unchecked {
-        _balances[account] = accountBalance - amount;
-    }
-        _totalSupply -= amount;
-
-        emit Transfer(account, address(0), amount);
     }
 
     function _approve(
