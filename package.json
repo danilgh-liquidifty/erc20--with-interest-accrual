@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.7.1",
+    "dotenv": "^16.0.1",
     "hardhat-waffle": "^0.0.1-security"
   }
 }
