@@ -155,8 +155,8 @@ contract N11 is Ownable, IERC20, IERC20Metadata {
     }
 
     function _earned(address account) internal view returns (uint256) {
-        uint256 differenceInMinutes = _lastTime[account] > 0 ? (block.timestamp - _lastTime[account]) / _interestAccrualPeriod : 0;
-        return (((_balances[account] * 11) / 10) - _balances[account]) * differenceInMinutes;
+        uint256 differenceInTime = _lastTime[account] > 0 ? (block.timestamp - _lastTime[account]) / _interestAccrualPeriod : 0;
+        return (((_balances[account] * 11) / 10) - _balances[account]) * differenceInTime;
     }
 
     function _mint(address account, uint256 amount) internal virtual {
