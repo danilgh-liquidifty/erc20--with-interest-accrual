@@ -53,6 +53,18 @@ contract N11 is Ownable, IERC20, IERC20Metadata {
         return _balances[account] + _earned(account);
     }
 
+    function balanceOf(address account) public view returns (uint256) {
+        return _balances[account] + _earned(account);
+    }
+
+    function realBalanceOf(address account) public view returns (uint256) {
+        return _balances[account];
+    }
+
+    function earned(address account) public view returns (uint256) {
+        return _earned(account);
+    }
+
     function lastTime(address account) public view returns (uint) {
         return _lastTime[account];
     }
